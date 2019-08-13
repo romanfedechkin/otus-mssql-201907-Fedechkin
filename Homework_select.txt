@@ -1,0 +1,30 @@
+1. SELECT [OrderLineID]
+,[OrderID]
+,[StockItemID]
+,[Description]
+,[PackageTypeID]
+,[Quantity]
+,[UnitPrice]
+,[TaxRate]
+,[PickedQuantity]
+,[PickingCompletedWhen]
+,[LastEditedBy]
+,[LastEditedWhen]
+FROM [WideWorldImporters].[Sales].[OrderLines]
+where [Description] like('%urgent%') or [Description] like ('Animal%')
+
+2.SELECT top (100)sup.*,trans.*
+  FROM [WideWorldImporters].[Purchasing].[Suppliers] sup
+  left join [WideWorldImporters].[Purchasing].[SupplierTransactions] trans
+  on sup.[SupplierID] = trans.[SupplierID]
+  where trans.[SupplierTransactionID] is null
+
+6.SELECT TOP (1000) cost.[CustomerID]
+      ,cost.[CustomerName]
+	  ,cost.[phonenumber]
+       FROM [WideWorldImporters].[Sales].[Customers] cost
+  inner join [WideWorldImporters].[Sales].[Orders] ord
+  on cost.CustomerID = ord.CustomerID
+  where ord.OrderID in (SELECT [OrderID]
+  FROM [WideWorldImporters].[Sales].[OrderLines]
+  where Description = 'Chocolate frogs 250g')
