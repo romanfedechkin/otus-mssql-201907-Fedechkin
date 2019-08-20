@@ -1,0 +1,34 @@
+--1.Выберите сотрудников, которые являются продажниками, и еще не сделали ни одной продажи.
+select [fullname]
+from [Application].[People] as sotr
+where sotr.PersonID not in 
+	(select [contactpersonid] 
+	 from [Sales].[Invoices])
+
+--2.ver1. Выберите товары с минимальной ценой (подзапросом), 2 варианта подзапроса. 
+select [StockItemName],min ([unitprice]) as min_unitprice 
+from [Warehouse].[StockItems]
+group by [StockItemName]
+order by min_unitprice
+
+--2.ver2. 3 наименования товаров с минимальной ценой)
+select [StockItemName],unitprice from [Warehouse].[StockItems] where [StockItemName] in 
+(select top(3) [StockItemName] 
+from  [Warehouse].[StockItems]
+group by [StockItemName]
+order by min ([unitprice]))
+
+
+--Выберите города (ид и название), в которые были доставлены товары, входящие в тройку самых дорогих товаров,
+--а также Имя сотрудника, который осуществлял упаковку заказов
+select distinct top (3) [CityID],[CityName],[description],[unitprice],[fullname],[deliveryinstructions]
+from [sales].[OrderLines] ol
+join [Sales].[Invoices] inv
+on inv.OrderID = ol.OrderID
+join [Application].[People] peop
+on inv.SalespersonPersonID = peop.PersonID
+join [Sales].[Customers] cust
+on inv.[CustomerID] = cust.CustomerID
+join [Application].[Cities] city
+on cust.[PostalCityID] = city.[CityID]
+order by UnitPrice desc
