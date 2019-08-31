@@ -1,34 +1,136 @@
 --1.Выберите сотрудников, которые являются продажниками, и еще не сделали ни одной продажи.
-select [fullname]
-from [Application].[People] as sotr
-where sotr.PersonID not in 
-	(select [contactpersonid] 
-	 from [Sales].[Invoices])
+/****** Скрипт для команды SelectTopNRows из среды SSMS  ******/
+select [PersonID]
+	,[fullname]
+	,[issalesperson]
+from [application].[people] a
+where [issalesperson] not in (Select distinct salespersonpersonid from [sales].[Invoices])
+and [issalesperson] = 1
 
---2.ver1. Выберите товары с минимальной ценой (подзапросом), 2 варианта подзапроса. 
-select [StockItemName],min ([unitprice]) as min_unitprice 
+--
+with a as (select distinct salespersonpersonid from [sales].[Invoices])
+select [PersonID]
+	,[fullname]
+	,[issalesperson]
+	from [application].[people] b
+	where b.IsSalesperson not in (select * from a)
+	and [issalesperson] = 1
+--2
+select [stockitemname]
 from [Warehouse].[StockItems]
-group by [StockItemName]
-order by min_unitprice
+where UnitPrice in (select min(unitprice) from [Warehouse].[StockItems])
 
---2.ver2. 3 наименования товаров с минимальной ценой)
-select [StockItemName],unitprice from [Warehouse].[StockItems] where [StockItemName] in 
-(select top(3) [StockItemName] 
-from  [Warehouse].[StockItems]
-group by [StockItemName]
-order by min ([unitprice]))
+select [stockitemname]
+from [Warehouse].[StockItems] s2
+group by [stockitemname]
+having min(unitprice) = (select min(unitprice) from [Warehouse].[StockItems])
+
+--3
+select distinct 
+ s.[Customerid]
+,s.[Customername]
+from [Sales].[Customers] s
+where s.[Customerid] in 
+(select top (5) Customerid from [Sales].[CustomerTransactions] order by [TransactionAmount] desc)
+
+WITH tmp ([Customerid]) as
+( select top (5) cc.Customerid 
+from [Sales].[CustomerTransactions] cc
+ order by [TransactionAmount] desc)
+ select  c.[Customerid]
+       ,c.[Customername]
+from [Sales].[Customers] c
+join tmp on c.CustomerID = tmp.Customerid
+
+select distinct 
+ c.[Customerid]
+,c.[Customername]
+from [Sales].[CustomerTransactions] cc
+join [Sales].[Customers] c
+on cc.CustomerID = c.CustomerID
+where TransactionAmount in 
+(select top (5) TransactionAmount 
+from [Sales].[CustomerTransactions] 
+order by [TransactionAmount] desc)
+
+--3
+select distinct 
+ s.[Customerid]
+,s.[Customername]
+from [Sales].[Customers] s
+where s.[costumerid] in 
+(select top (5) Customerid from [Sales].[CustomerTransactions] order by [TransactionAmount] desc)
+
+WITH tmp ([Customerid]) as
+( select top (5) cc.Customerid 
+from [Sales].[CustomerTransactions] cc
+ order by [TransactionAmount] desc)
+ select  c.[Customerid]
+       ,c.[Customername]
+from [Sales].[Customers] c
+join tmp on c.CustomerID = tmp.Customerid
+
+select distinct 
+ c.[Customerid]
+,c.[Customername]
+from [Sales].[CustomerTransactions] cc
+join [Sales].[Customers] c
+on cc.CustomerID = c.CustomerID
+where TransactionAmount in 
+(select top (5) TransactionAmount 
+from [Sales].[CustomerTransactions] 
+order by [TransactionAmount] desc)
+
+select distinct 
+	cit.cityid,
+	cit.cityndme,
+	p.fullname,
+	il.unitprice
+from sales.Invoices si 
+join sales.InvoiceLines il on si.InvoiceID = sil.InvoiceID
+join Application.People p on si.PackedByPersonID= ap.PersonID
+join sales.Customers cus  on si.CustomerID = cus.CustomerID 
+join Application.Cities cit on cit.sityid = cus.DeliveryCityID
+where il.UnitPrice in (select top(3) UnitPrice from [Warehouse].StockItems order by unitprice desc
+select distinct 
+ s.[Customerid]
+,s.[Customername]
+from [Sales].[Customers] s
+where s.[costumerid] in 
+(select top (5) Customerid from [Sales].[CustomerTransactions] order by [TransactionAmount] desc)
+
+WITH tmp ([Customerid]) as
+( select top (5) cc.Customerid 
+from [Sales].[CustomerTransactions] cc
+ order by [TransactionAmount] desc)
+ select  c.[Customerid]
+       ,c.[Customername]
+from [Sales].[Customers] c
+join tmp on c.CustomerID = tmp.Customerid
+
+select distinct 
+ c.[Customerid]
+,c.[Customername]
+from [Sales].[CustomerTransactions] cc
+join [Sales].[Customers] c
+on cc.CustomerID = c.CustomerID
+where TransactionAmount in 
+(select top (5) TransactionAmount 
+from [Sales].[CustomerTransactions] 
+order by [TransactionAmount] desc)
+
+select distinct 
+	cit.cityid,
+	cit.cityndme,
+	p.fullname,
+	il.unitprice
+from sales.Invoices si 
+join sales.InvoiceLines il on si.InvoiceID = sil.InvoiceID
+join Application.People p on si.PackedByPersonID= ap.PersonID
+join sales.Customers cus  on si.CustomerID = cus.CustomerID 
+join Application.Cities cit on cit.sityid = cus.DeliveryCityID
+where il.UnitPrice in (select top(3) UnitPrice from [Warehouse].StockItems order by unitprice desc
 
 
---Выберите города (ид и название), в которые были доставлены товары, входящие в тройку самых дорогих товаров,
---а также Имя сотрудника, который осуществлял упаковку заказов
-select distinct top (3) [CityID],[CityName],[description],[unitprice],[fullname],[deliveryinstructions]
-from [sales].[OrderLines] ol
-join [Sales].[Invoices] inv
-on inv.OrderID = ol.OrderID
-join [Application].[People] peop
-on inv.SalespersonPersonID = peop.PersonID
-join [Sales].[Customers] cust
-on inv.[CustomerID] = cust.CustomerID
-join [Application].[Cities] city
-on cust.[PostalCityID] = city.[CityID]
-order by UnitPrice desc
+
+
