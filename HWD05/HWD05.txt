@@ -1,0 +1,57 @@
+1. Посчитать среднюю цену товара, общую сумму продажи по месяцам
+
+select ol.Description
+,MONTH (o.orderdate) as mounth
+,avg (unitprice) as avg_price
+,sum (quantity) as summa
+from [Sales].[OrderLines] ol
+	join [Sales].[Orders] o
+on ol.orderid = o.orderid
+group by ol.Description,MONTH (o.orderdate)
+order by ol.Description,mounth
+	
+--2
+select ol.Description
+,MONTH (o.orderdate) as mounth
+,year (o.orderdate) as years
+,sum (quantity) as summa
+from [Sales].[OrderLines] ol
+	join [Sales].[Orders] o
+on ol.orderid = o.orderid
+group by ol.Description,MONTH (o.orderdate),year (o.orderdate)
+having sum (quantity * UnitPrice) > 10000
+
+--3
+select 
+MONTH (o.orderdate) as mounth
+,year (o.orderdate) as years
+,sum (quantity) as summa
+,min (o.orderdate) as min_date
+,sit.stockitemname
+, count(quantity) as kol_vo
+from [Sales].[OrderLines] ol
+	join [Sales].[Orders] o
+on ol.orderid = o.orderid
+	join [Warehouse].[StockItems] sit
+on  ol.StockItemID = sit.StockItemID
+group by year (o.orderdate),MONTH (o.orderdate),sit.stockitemname
+having sum(quantity) < 50
+order by year (o.orderdate),MONTH (o.orderdate)
+
+--
+with directreports (EmployeeID,FirstName,LastName,Title,ManagerID, employeelevel) as
+( select EmployeeID,FirstName,LastName,Title,ManagerID, 1 as employeelevel
+from dbo.MyEmployees 
+where managerid is null
+union all
+select q.EmployeeID,q.FirstName,q.LastName,q.Title,q.ManagerID, employeelevel + 1
+from dbo.MyEmployees q
+	join directreports d
+on q.managerid = d.employeeid)
+select employeeid,concat (FirstName, ' ' ,LastName) as name, Title,employeelevel
+from directreports
+order by employeeid,concat (FirstName, ' ' ,LastName), Title,employeelevel
+
+select *
+from dbo.MyEmployees q
+
