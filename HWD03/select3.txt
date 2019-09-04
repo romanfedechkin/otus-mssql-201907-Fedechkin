@@ -26,13 +26,14 @@ group by [stockitemname]
 having min(unitprice) = (select min(unitprice) from [Warehouse].[StockItems])
 
 --3
+--ver1
 select distinct 
  s.[Customerid]
 ,s.[Customername]
 from [Sales].[Customers] s
-where s.[Customerid] in 
+where s.[CustomerID] in 
 (select top (5) Customerid from [Sales].[CustomerTransactions] order by [TransactionAmount] desc)
-
+--ver2
 WITH tmp ([Customerid]) as
 ( select top (5) cc.Customerid 
 from [Sales].[CustomerTransactions] cc
@@ -42,6 +43,7 @@ from [Sales].[CustomerTransactions] cc
 from [Sales].[Customers] c
 join tmp on c.CustomerID = tmp.Customerid
 
+--ver3
 select distinct 
  c.[Customerid]
 ,c.[Customername]
@@ -53,83 +55,19 @@ where TransactionAmount in
 from [Sales].[CustomerTransactions] 
 order by [TransactionAmount] desc)
 
---3
-select distinct 
- s.[Customerid]
-,s.[Customername]
-from [Sales].[Customers] s
-where s.[costumerid] in 
-(select top (5) Customerid from [Sales].[CustomerTransactions] order by [TransactionAmount] desc)
-
-WITH tmp ([Customerid]) as
-( select top (5) cc.Customerid 
-from [Sales].[CustomerTransactions] cc
- order by [TransactionAmount] desc)
- select  c.[Customerid]
-       ,c.[Customername]
-from [Sales].[Customers] c
-join tmp on c.CustomerID = tmp.Customerid
-
-select distinct 
- c.[Customerid]
-,c.[Customername]
-from [Sales].[CustomerTransactions] cc
-join [Sales].[Customers] c
-on cc.CustomerID = c.CustomerID
-where TransactionAmount in 
-(select top (5) TransactionAmount 
-from [Sales].[CustomerTransactions] 
-order by [TransactionAmount] desc)
-
-select distinct 
-	cit.cityid,
-	cit.cityndme,
-	p.fullname,
-	il.unitprice
-from sales.Invoices si 
-join sales.InvoiceLines il on si.InvoiceID = sil.InvoiceID
-join Application.People p on si.PackedByPersonID= ap.PersonID
-join sales.Customers cus  on si.CustomerID = cus.CustomerID 
-join Application.Cities cit on cit.sityid = cus.DeliveryCityID
-where il.UnitPrice in (select top(3) UnitPrice from [Warehouse].StockItems order by unitprice desc
-select distinct 
- s.[Customerid]
-,s.[Customername]
-from [Sales].[Customers] s
-where s.[costumerid] in 
-(select top (5) Customerid from [Sales].[CustomerTransactions] order by [TransactionAmount] desc)
-
-WITH tmp ([Customerid]) as
-( select top (5) cc.Customerid 
-from [Sales].[CustomerTransactions] cc
- order by [TransactionAmount] desc)
- select  c.[Customerid]
-       ,c.[Customername]
-from [Sales].[Customers] c
-join tmp on c.CustomerID = tmp.Customerid
-
-select distinct 
- c.[Customerid]
-,c.[Customername]
-from [Sales].[CustomerTransactions] cc
-join [Sales].[Customers] c
-on cc.CustomerID = c.CustomerID
-where TransactionAmount in 
-(select top (5) TransactionAmount 
-from [Sales].[CustomerTransactions] 
-order by [TransactionAmount] desc)
-
-select distinct 
-	cit.cityid,
-	cit.cityndme,
-	p.fullname,
-	il.unitprice
-from sales.Invoices si 
-join sales.InvoiceLines il on si.InvoiceID = sil.InvoiceID
-join Application.People p on si.PackedByPersonID= ap.PersonID
-join sales.Customers cus  on si.CustomerID = cus.CustomerID 
-join Application.Cities cit on cit.sityid = cus.DeliveryCityID
-where il.UnitPrice in (select top(3) UnitPrice from [Warehouse].StockItems order by unitprice desc
+4.
+select distinct top (3) [CityID],
+[CityName],
+[description],
+[unitprice],
+[fullname],
+[deliveryinstructions]
+from [sales].[OrderLines] ol
+join [Sales].[Invoices] inv on inv.OrderID = ol.OrderID
+join [Application].[People] peop on inv.SalespersonPersonID = peop.PersonID
+join [Sales].[Customers] cust on inv.[CustomerID] = cust.CustomerID
+join [Application].[Cities] city on cust.[PostalCityID] = city.[CityID]
+order by UnitPrice desc
 
 
 
