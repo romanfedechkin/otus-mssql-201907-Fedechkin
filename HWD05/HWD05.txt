@@ -11,15 +11,15 @@ group by ol.Description,MONTH (o.orderdate)
 order by ol.Description,mounth
 	
 --2
-select ol.Description
-,MONTH (o.orderdate) as mounth
+select MONTH (o.orderdate) as mounth
 ,year (o.orderdate) as years
 ,sum (quantity) as summa
 from [Sales].[OrderLines] ol
 	join [Sales].[Orders] o
 on ol.orderid = o.orderid
-group by ol.Description,MONTH (o.orderdate),year (o.orderdate)
+group by MONTH (o.orderdate),year (o.orderdate)
 having sum (quantity * UnitPrice) > 10000
+order by year (o.orderdate),MONTH (o.orderdate)
 
 --3
 select 
@@ -50,7 +50,7 @@ from dbo.MyEmployees q
 on q.managerid = d.employeeid)
 select employeeid,concat (FirstName, ' ' ,LastName) as name, Title,employeelevel
 from directreports
-order by employeeid,concat (FirstName, ' ' ,LastName), Title,employeelevel
+order by employeeid,name, Title,employeelevel
 
 select *
 from dbo.MyEmployees q
