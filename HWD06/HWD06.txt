@@ -1,0 +1,26 @@
+--создаем временную таблицу(копия [Customers])
+	  select top (0) * into [WideWorldImporters].[Sales].[Customers_test] from [WideWorldImporters].[Sales].[Customers]
+	--1 Довставлять в базу 5 записей используя insert в таблицу Customers или Suppliers
+	 insert into [WideWorldImporters].[Sales].[Customers_test](CustomerID,CustomerName,BillToCustomerID,CustomerCategoryID,PrimaryContactPersonID,DeliveryMethodID,
+	   DeliveryCityID,PostalCityID,AccountOpenedDate,StandardDiscountPercentage,IsStatementSent,
+	   IsOnCreditHold,PaymentDays,PhoneNumber,FaxNumber,WebsiteURL,DeliveryAddressLine1,DeliveryPostalCode,
+	   PostalAddressLine1,PostalPostalCode,LastEditedBy,ValidTo,ValidFrom)
+	  values ('11111','test1','11111','1','3252','1','11111','11111','01.01.2001','1','1',
+	  '1','1','11111111','111111','wwww','445560','44079','44089','11111','11111','1111','1111'),
+	  ('22222','test2','22222','2','3252','2','22222','22222','02.02.2002','2','2',
+	  '2','2','22222222','222222','wwww','445560','44079','44089','22222','22222','2222','2222'),
+	  ('33333','test3','33333','3','3353','3','33333','33333','03.03.3003','3','3',
+	  '3','3','33333333','333333','wwww','445560','44079','44089','33333','33333','3333','3333'),
+	  ('44444','test4','44444','4','4454','4','44444','44444','04.04.4004','4','4',
+	  '4','4','44444444','444444','wwww','445560','44079','44089','44444','44444','4444','4444'),
+	  ('55555','test5','55555','5','5555','5','55555','55555','05.05.5005','5','5',
+	  '5','5','55555555','555555','wwww','555560','55079','55089','55555','55555','5555','5555')
+
+	  --2. удалите 1 запись из Customers, которая была вами добавлена
+	  delete from [WideWorldImporters].[Sales].[Customers_test]
+	  where CustomerID = '11111'
+
+	  --3изменить одну запись, из добавленных через UPDATE
+	  update [WideWorldImporters].[Sales].[Customers_test]
+	  set CustomerName = 'test2'
+	  where Customerid = '22222'
