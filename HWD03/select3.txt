@@ -56,19 +56,16 @@ from [Sales].[CustomerTransactions]
 order by [TransactionAmount] desc)
 
 4.
-select distinct top (3) [CityID],
+select distinct [CityID],
 [CityName],
-[description],
 [unitprice],
-[fullname],
-[deliveryinstructions]
+[fullname]
 from [sales].[OrderLines] ol
 join [Sales].[Invoices] inv on inv.OrderID = ol.OrderID
 join [Application].[People] peop on inv.SalespersonPersonID = peop.PersonID
 join [Sales].[Customers] cust on inv.[CustomerID] = cust.CustomerID
 join [Application].[Cities] city on cust.[PostalCityID] = city.[CityID]
-order by UnitPrice desc
-
+where UnitPrice = (select max(UnitPrice) from [sales].[OrderLines])
 
 
 
