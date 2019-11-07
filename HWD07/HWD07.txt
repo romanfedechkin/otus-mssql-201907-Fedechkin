@@ -1,0 +1,89 @@
+--1. Напишите запрос с временной таблицей и перепишите его с табличной переменной. Сравните планы.
+--В качестве запроса с временной таблицей и табличной переменной можно взять свой запрос или следующий запрос:
+--Сделать расчет суммы продаж нарастающим итогом по месяцам с 2015 года (в рамках одного месяца он будет одинаковый, нарастать будет в течение времени выборки)
+--Выведите id продажи, название клиента, дату продажи, сумму продажи, сумму нарастающим итогом
+
+use WideWorldImporters
+
+select distinct
+inv.InvoiceID,
+cust.CustomerName,
+inv.InvoiceDate,
+SUM(il.Quantity * il.UnitPrice) OVER (PARTITION BY inv.InvoiceID) as sum_prod, 
+SUM(il.Quantity * il.UnitPrice) OVER (ORDER BY DATEPART(YEAR, inv.InvoiceDate), DATEPART(MONTH, inv.InvoiceDate)) as sum_itog
+FROM Sales.Invoices inv
+join Sales.Customers cust on inv.CustomerID = cust.CustomerID
+join Sales.InvoiceLines il on il.InvoiceID = inv.InvoiceID
+WHERE inv.InvoiceDate >= '2015-01-01' AND inv.InvoiceDate <= '2015-12-31';
+
+--2. Вывести список 2х самых популярных продуктов (по кол-ву проданных) в каждом месяце за 2016й год (по 2 самых популярных продукта в каждом месяце)
+
+WITH ProductMonthSales
+AS (
+    SELECT si.StockItemName, 
+        SUM(il.Quantity) AS [TotalQuantity], 
+        MONTH(i.InvoiceDate) AS [MonthNumber]
+    FROM Sales.InvoiceLines il
+        INNER JOIN [Sales].[Invoices] i ON il.InvoiceID = i.InvoiceID 
+        INNER JOIN Warehouse.StockItems si ON il.StockItemID = si.StockItemID
+	WHERE YEAR(i.InvoiceDate) = 2016
+    GROUP BY si.StockItemName, MONTH(i.InvoiceDate)
+),
+ProductSalesNumbered
+AS (
+    SELECT ProductMonthSales.StockItemName, 
+        ProductMonthSales.TotalQuantity, 
+        ProductMonthSales.MonthNumber, 
+        ROW_NUMBER() OVER(PARTITION BY ProductMonthSales.MonthNumber ORDER BY ProductMonthSales.TotalQuantity DESC) AS [Num]
+    FROM ProductMonthSales
+)
+SELECT psm.StockItemName, psm.TotalQuantity
+FROM ProductSalesNumbered psm
+WHERE psm.Num <= 2
+ORDER BY psm.MonthNumber, psm.TotalQuantity DESC;
+
+--3. Функции одним запросом
+--Посчитайте по таблице товаров, в вывод также должен попасть ид товара, название, брэнд и цена
+--пронумеруйте записи по названию товара, так чтобы при изменении буквы алфавита нумерация начиналась заново
+--посчитайте общее количество товаров и выведете полем в этом же запросе
+--посчитайте общее количество товаров в зависимости от первой буквы названия товара
+--отобразите следующий id товара исходя из того, что порядок отображения товаров по имени
+--предыдущий ид товара с тем же порядком отображения (по имени)
+--названия товара 2 строки назад, в случае если предыдущей строки нет нужно вывести "No items"
+--сформируйте 30 групп товаров по полю вес товара на 1 шт
+--Для этой задачи НЕ нужно писать аналог без аналитических функций
+
+SELECT si.StockItemID, 
+    si.StockItemName, 
+    si.Brand, 
+    ROW_NUMBER() OVER(PARTITION BY LEFT(si.StockItemName, 1) ORDER BY si.StockItemName) [NumbererFirstChar], 
+    COUNT(*) OVER() [TotalCount], 
+    COUNT(*) OVER(PARTITION BY LEFT(si.StockItemName, 1)) [TotalCountFirstChar], 
+    LEAD(si.StockItemID) OVER(ORDER BY si.StockItemName) [NextId], 
+    LAG(si.StockItemID) OVER(ORDER BY si.StockItemName) [PrevId], 
+    LAG(si.StockItemName, 2, 'No items') OVER(ORDER BY si.StockItemName) [Prevx2Name],
+    NTILE(30) OVER(ORDER BY si.TypicalWeightPerUnit) [GroupWeight]
+FROM Warehouse.StockItems si
+ORDER BY si.StockItemName;
+
+-- 4. По каждому сотруднику выведите последнего клиента, которому сотрудник что-то продал
+-- В результатах должны быть ид и фамилия сотрудника, ид и название клиента, дата продажи, сумму сделки
+SELECT p.PersonID, 
+       p.FullName, 
+       c.CustomerID, 
+       c.CustomerName, 
+       r.TransactionDate, 
+       r.TransactionAmount
+FROM
+(
+    SELECT ct.CustomerID, 
+           i.SalespersonPersonID, 
+           ct.TransactionDate, 
+           ct.TransactionAmount, 
+           ROW_NUMBER() OVER(PARTITION BY SalespersonPersonID ORDER BY TransactionDate DESC) AS [Num]
+    FROM Sales.CustomerTransactions ct
+         INNER JOIN Sales.Invoices i ON ct.InvoiceID = i.InvoiceID
+) AS r
+INNER JOIN Application.People p ON r.SalespersonPersonID = p.PersonID
+INNER JOIN Sales.Customers c ON r.CustomerID = c.CustomerID
+WHERE r.[num] = 1;
