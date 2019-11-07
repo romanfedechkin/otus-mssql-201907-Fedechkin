@@ -1,0 +1,62 @@
+Create database cred_card_bank;
+go
+
+use cred_card_bank
+go
+
+-- таблица с данными о клиентах
+create table client (
+id int not null identity(1,1) primary key,
+fio varchar (100) not null,
+daterogd date,
+doc_number varchar (30),
+tel_number varchar(30),
+email varchar (50));
+
+-- таблица с данными по картам
+Create table cred_card (
+id int not null identity(1,1) primary key,
+card_num varchar (20),
+acca varchar (20),
+name_card varchar (50),
+dopen date,
+dclose date,
+rate varchar(4),
+limit varchar (10))
+
+--Данные по операциям
+Create table cred_card_oper (
+id int not null identity(1,1) primary key,
+id_client int not null,
+id_card int not null,
+date_oper datetime,
+sum_oper datetime,
+ost money,
+sumplat money,
+dateplat date,
+details varchar (50),
+cod_oper varchar (5))
+
+-- справочник опреаций
+
+create table cred_cod_oper (
+id int not null identity(1,1) primary key,
+cod_oper varchar (5),
+cod_oper_name varchar (100))
+
+-- связь операций и клиентов
+alter table cred_card_oper add constraint fk_cred_card_client foreign key (id_client)
+references client (id)
+on update cascade
+on delete cascade
+
+-- связь операции и карты 
+alter table cred_card_oper add constraint fk_cred_card_client_ foreign key (id_card)
+references cred_card (id)
+on update cascade
+on delete cascade
+
+--index
+create index oper_idx on cred_card_oper (cod_oper)
+create index oper_idx on cred_cod_oper (cod_oper)
+
