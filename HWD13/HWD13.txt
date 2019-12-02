@@ -1,0 +1,96 @@
+--1) Написать функцию возвращающую Клиента с наибольшей суммой покупки.
+Use WideWorldImporters
+go
+
+if object_id('Sales.Customer_MaxBuy', 'P') is not null
+	drop procedure Sales.Customer_MaxBuy;
+go
+create procedure Sales.Customer_MaxBuy
+as
+	select top 1 cust.CustomerName
+	from Sales.InvoiceLines IL
+		join Sales.Invoices INS 
+	on IL.InvoiceID=iL.InvoiceID
+		join Sales.Customers cust 
+	on INS.CustomerID= cust.CustomerID
+	group by cust.CustomerName
+	order by sum(IL.Quantity*IL.UnitPrice) desc
+go
+
+--RUN
+exec Sales.Customer_MaxBuy
+
+--2) Написать хранимую процедуру с входящим параметром СustomerID, выводящую сумму покупки по этому клиенту.
+Use WideWorldImporters
+go
+
+if object_id('Sales.Customer_buy', 'P') is not null
+	drop procedure Sales.Customer_buy
+go
+create procedure Sales.Customer_buy
+	@СustomerID int
+as
+	select cs.CustomerID,cs.CustomerName, sum(IL.Quantity*IL.Unitprice) as buy
+	from Sales.InvoiceLines IL
+		join Sales.Invoices i 
+	on IL.InvoiceID=i.InvoiceID
+		join Sales.Customers cs 
+	on i.CustomerID=cs.CustomerID
+	where cs.CustomerID=@СustomerID
+	group by cs.CustomerID, cs.CustomerName
+go
+
+--run
+exec Sales.Customer_buy 
+@СustomerID = 13
+
+
+
+--3) Создать одинаковую функцию и хранимую процедуру, посмотреть в чем разница в производительности и почему.
+
+create function dbo.Customer_buy(@СustomerID int)
+returns table
+as 
+	return(
+			select cs.CustomerID,cs.CustomerName, sum(IL.Quantity*IL.Unitprice) as buy
+	from Sales.InvoiceLines IL
+		join Sales.Invoices i 
+	on IL.InvoiceID=i.InvoiceID
+		join Sales.Customers cs 
+	on i.CustomerID=cs.CustomerID
+	where cs.CustomerID=@СustomerID
+	group by cs.CustomerID, cs.CustomerName
+		);
+go
+--сравнение
+set statistics time on
+go
+select * from dbo.Customer_buy(13)
+
+set statistics time on
+go
+exec Sales.Customer_buy  
+@СustomerID = 13
+
+
+select * from dbo.Customer_buy(13)			|	exec Sales.Customer_buy  @СustomerID = 13
+Время синтаксического анализа и компиляции SQL Server: 	|	Время синтаксического анализа и компиляции SQL Server: 
+ время ЦП = 0 мс, истекшее время = 0 мс.		|	 время ЦП = 0 мс, истекшее время = 0 мс.
+ Время работы SQL Server:				|	 Время работы SQL Server:
+   Время ЦП = 0 мс, затраченное время = 0 мс.		|	   Время ЦП = 0 мс, затраченное время = 0 мс.
+Время синтаксического анализа и компиляции SQL Server: 	|	Время синтаксического анализа и компиляции SQL Server: 
+ время ЦП = 31 мс, истекшее время = 34 мс.		|	 время ЦП = 0 мс, истекшее время = 0 мс.
+							|	Время синтаксического анализа и компиляции SQL Server: 
+(затронута одна строка)					|	 время ЦП = 44 мс, истекшее время = 44 мс.
+	 Время работы SQL Server:			|	(затронута одна строка)
+   Время ЦП = 0 мс, затраченное время = 4 мс.		|	
+							|	 Время работы SQL Server:
+Время выполнения: 2019-12-02T19:54:10.2387160+04:00	|	   Время ЦП = 0 мс, затраченное время = 96 мс.
+							|	
+							|	 Время работы SQL Server:
+							|	   Время ЦП = 46 мс, затраченное время = 140 мс.
+							|	
+							|	Время выполнения: 2019-12-02T19:53:47.4336022+04:00
+
+--Отработка посредсвом функции быстрее
+
