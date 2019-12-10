@@ -1,0 +1,29 @@
+Запросы будут использоваться разнообразные(на сколько хватит фантазии у аналитиков) Им необходима почти вся информация из различных таблиц,
+ (вместе с флагманской таблицей portfel_FL)поэтому оптимально будет Создать индексы на ID кредита.
+
+-- примерный запрос: выделить кредиты, по которым не закреплено обеспечение, хотя в внд это обязательное условие
+SELECT *
+  FROM [otus].[dbo].[Portfel_FL] 
+  where [ПОТ] = 'Ипотека'
+  and [ID кредита] not in (select id from [dbo].[portf_obesp])
+
+
+создаем индексы
+--индексы портфель
+CREATE INDEX portfel_fl_id_cred ON [dbo].[Portfel_FL] ([ID кредита]) WITH (PAD_INDEX = ON, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, ONLINE = ON, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 99, DATA_COMPRESSION = PAGE)
+CREATE INDEX portfel_fl_pasp ON [dbo].[Portfel_FL] ([Паспорт]) WITH (PAD_INDEX = ON, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, ONLINE = ON, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 99, DATA_COMPRESSION = PAGE)
+
+-- индекс списание 
+create index id_spis on [dbo].[portf_spisanie]([ID]) WITH (PAD_INDEX = ON, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, ONLINE = ON, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 99, DATA_COMPRESSION = PAGE)
+-- индекс созаемщики
+create index id_sozaem on [dbo].[portf_sozaem]([ID]) WITH (PAD_INDEX = ON, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, ONLINE = ON, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 99, DATA_COMPRESSION = PAGE)
+
+--индекс оценщики
+create index id_pm on [dbo].[portf_pricemans]([ID]) WITH (PAD_INDEX = ON, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, ONLINE = ON, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 99, DATA_COMPRESSION = PAGE)
+
+--индекс обеспечение
+create index id_ob on [dbo].[portf_obesp]([ID]) WITH (PAD_INDEX = ON, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, ONLINE = ON, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 99, DATA_COMPRESSION = PAGE)
+
+--индекс неустойки
+create index id_neust on [dbo].[portf_neust]([ID])
+
