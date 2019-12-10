@@ -1,0 +1,111 @@
+--создаем БД под проект
+create Database otus
+
+use [otus]
+go
+
+-- Создаем таблицы для проекта 
+--1. кредиты
+CREATE TABLE [dbo].[Portfel_FL](	
+	[ID кредита] [varchar](18) NULL,
+	[ОСБ] [int] NULL,
+	[ВСП] [int] NULL,
+	[Номер заявки] [varchar](18) NULL,
+	[Дата заявки] [date] NULL,
+	[№ кд] [varchar](25) NULL,
+	[Клиент] [varchar](150) NULL,
+	[Паспорт] [varchar](200) NULL,
+	[Лимит выдачи] [money] NULL,
+	[Валюта] [varchar](3) NULL,
+	[Дата начала] [date] NULL,
+	[Дата выдачи] [date] NULL,
+	[Дата закрытия] [date] NULL,
+	[Состояние] [varchar](50) NULL,
+	[Вид кредита] [varchar](150) NULL,
+	[ПОТ] [varchar](150) NULL,
+	[ГОТ] [varchar](150) NULL,
+	[% ставка] [varchar](10) NULL,
+	[Вариант погашения] [varchar](150) NULL,
+	[Адрес регистрации] [varchar](250) NULL,
+	[Дата рождения] [date] NULL,
+	[Место работы] [varchar](250) NULL,
+	[Должность] [varchar](250) NULL,
+	[Категория благонадежности] [varchar](150) NULL,
+	[Категория качества] [int] NULL,
+	[Норматив резервирования] [money] NULL,
+	[Кол-во дней просрочки ОД] [int] NULL,
+	[Кол-во дней просрочки %%] [int] NULL,
+	[Дата образования проср ОД] [date] NULL,
+	[Дата образования проср %%] [date] NULL,
+	[Кол-во дней непрер просрочки ОД и %%] [int] NULL,
+	[Дата образования непрер просрочки ОД и %%] [date] NULL,
+	[Ссудный счет] [varchar](25) NULL,
+	[Остаток] [money] NULL,
+	[Просроч проценты] [varchar](25) NULL,
+	[Остаток2] [money] NULL,
+	[Просроч задолженность] [varchar](25) NULL,
+	[Остаток3] [money] NULL,
+	[Создано пользователем] [varchar](160) NULL,
+	[Дата портфеля] [date] NULL,
+	[Актуальный счет] [varchar](25) NULL)	
+
+--2 списанные кредиты
+CREATE TABLE [dbo].[portf_spisanie](
+	[ID] [varchar](15) NULL,
+	[Подразделение] [varchar](20) NULL,
+	[Дата списания] [date] NULL,
+	[Сумма списания] [money] NULL,
+	[Наименование операции] [varchar](100) NULL)
+
+--3 Созаемщики по кредитам
+CREATE TABLE [dbo].[portf_sozaem](
+	[ID] [varchar](15) NULL,
+	[Подразделение] [varchar](20) NULL,
+	[Созаемщик] [varchar](160) NULL,
+	[Дата рождения созаемщика] [date] NULL,
+	[DDATA] [date] NULL)
+
+--4 оцещики по кредитам
+CREATE TABLE [dbo].[portf_pricemans](
+	[ID] [varchar](15) NULL,
+	[Подразделение] [varchar](20) NULL,
+	[Дата оценки] [date] NULL,
+	[Наименование оценщика] [varchar](500) NULL,
+	[Оценочная стоимость] [money] NULL)
+
+--5 обеспечение по кредитам
+CREATE TABLE [dbo].[portf_obesp](
+	[ID] [varchar](15) NOT NULL,
+	[ID_обеспечения] [varchar](15) NULL,
+	[Подразделение] [varchar](20) NULL,
+	[№ договора обесп] [varchar](22) NULL,
+	[Сумма обеспечения] [money] NULL,
+	[Вид обеспечения] [varchar](100) NULL,
+	[В/Б счет] [varchar](25) NULL,
+	[Остаток на В/Б] [money] NULL,
+	[Учтен на В/Б] [varchar](1) NULL,
+	[Дата договора обесп] [date] NULL,
+	[Дата окончания договора] [date] NULL,
+	[Залогодатель] [varchar](160) NULL,
+	[Дата рождения] [date] NULL,
+	[Статус договора] [varchar](100) NULL,
+	[Вид залоговой ценности] [varchar](250) NULL,
+	[Описание] [varchar](100) NULL,
+	[Оценочная стоимость] [money] NULL,
+	[Коэффициент] [money] NULL,
+	[Количество] [int] NULL,
+	[Место хранения] [varchar](2000) NULL,
+	[Стоимость] [money] NULL,
+	[Начало страховки] [date] NULL,
+	[Конец страховки] [date] NULL,
+	[Серия_номер страховки] [varchar](100) NULL,
+	[Страховая компания] [varchar](160) NULL)
+
+--6 неустойки по кредитам за непредоставленные вовремя документы
+CREATE TABLE [dbo].[portf_neust](
+	[ID] [varchar](15) NULL,
+	[Подразделение] [varchar](20) NULL,
+	[Наименование] [varchar](100) NULL,
+	[Дата начала периода] [date] NULL,
+	[Дата оконч периода] [date] NULL,
+	[Сумма % с нар_итогом] [money] NULL)
