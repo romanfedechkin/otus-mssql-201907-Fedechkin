@@ -1,0 +1,52 @@
+
+/*Оптимизируйте запрос по БД WorldWideImporters.
+*/
+
+/* Исходный запрос
+Select ord.CustomerID, OrL.StockItemID, SUM(OrL.UnitPrice), SUM(OrL.Quantity), COUNT(ord.OrderID) FROM Sales.Orders AS ord
+JOIN Sales.OrderLines AS det ON OrL.OrderID = ord.OrderID JOIN Sales.Invoices AS Inv ON Inv.OrderID = ord.OrderID
+JOIN Sales.CustomerTransactions AS Trans ON Trans.InvoiceID = Inv.InvoiceID JOIN Warehouse.StockItemTransactions AS ItemTrans
+ON ItemTrans.StockItemID = OrL.StockItemID WHERE Inv.BillToCustomerID != ord.CustomerID AND (Select SupplierId
+FROM Warehouse.StockItems AS It Where SIt.StockItemID = OrL.StockItemID) = 12 AND (SELECT SUM(Total.UnitPrice*Total.Quantity)
+FROM Sales.OrderLines AS Total Join Sales.Orders AS ordTotal On ordTotal.OrderID = Total.OrderID WHERE ordTotal.CustomerID
+= Inv.CustomerID) > 250000 AND DATEDIFF(dd, Inv.InvoiceDate, ord.OrderDate) = 0 GROUP BY ord.CustomerID, OrL.StockItemID
+ORDER BY ord.CustomerID, OrL.StockItemID
+*/
+
+USE WideWorldImporters;
+
+SET STATISTICS TIME,IO ON;
+
+
+WITH cteBigCustomers AS (
+    SELECT ordTotal.CustomerID
+    FROM Sales.OrderLines Total
+        JOIN Sales.Orders ordTotal 
+		ON ordTotal.OrderID = Total.OrderID
+    GROUP BY ordTotal.CustomerID
+    HAVING SUM(Total.UnitPrice*Total.Quantity) > 250000
+)
+SELECT
+    ord.CustomerID
+    , OrL.StockItemID
+    , SUM(OrL.UnitPrice)
+    , SUM(OrL.Quantity)
+    , COUNT(ord.OrderID)
+FROM
+    Sales.Orders AS ord
+    JOIN Sales.OrderLines OrL      	
+	ON ord.OrderID = OrL.OrderID
+    JOIN Warehouse.StockItems SIt      
+	ON OrL.StockItemID = SIt.StockItemID
+    JOIN Sales.Invoices Inv
+    ON ord.OrderID = Inv.OrderID AND ord.OrderDate = Inv.InvoiceDate
+WHERE
+    Inv.BillToCustomerID != ord.CustomerID
+    AND SIt.SupplierId = 12
+    AND OrL.StockItemID IN (SELECT ItemTrans.StockItemID FROM Warehouse.StockItemTransactions AS ItemTrans)
+    AND Inv.InvoiceID IN (SELECT Trans.InvoiceID FROM Sales.CustomerTransactions AS Trans)
+    AND Inv.CustomerID IN (SELECT bc.CustomerID FROM cteBigCustomers AS bc)
+GROUP BY ord.CustomerID, OrL.StockItemID
+ORDER BY ord.CustomerID, OrL.StockItemID;
+
+SET STATISTICS TIME,IO OFF;
